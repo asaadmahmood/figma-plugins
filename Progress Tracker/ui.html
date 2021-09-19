@@ -1,0 +1,112 @@
+<script
+    src="https://code.jquery.com/jquery-3.6.0.min.js"
+    integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+    crossorigin="anonymous"
+></script>
+<link
+    href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css"
+    rel="stylesheet"
+>
+
+<div class="p-10">
+    <h2 class="text-2xl font-bold">Mattermost Progress Tracker</h2>
+    <form action="post">
+        <div class="inputs mt-10 space-y-2">
+        </div>
+
+        <button
+            class="btn-add px-4 py-2 border-gray-300 border mt-4 hover:bg-gray-100"
+            id="addItem"
+        >Add Another</button>
+
+        <div class="mt-10 space-x-2">
+            <button
+                id="submit"
+                type="submit"
+                class="bg-blue-500 px-4 py-2 rounded text-white"
+            >Submit</button>
+            <button id="cancel">Cancel</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    let content = ['Create Figma File', 'Create Spec', 'Do Design', 'Post in Spec Reviews'];
+    let count = content.length;
+
+
+    $('#submit').on('click', function (e) {
+        e.preventDefault();
+
+        let data = {};
+        $('form').find('input[type="text"]').each(function (x, field) {
+            if (field.name) {
+                if (field.name.indexOf('[]') > 0) {
+                    if (!$.isArray(data[field.name])) {
+                        data[field.name] = new Array();
+                    }
+                    for (let i = 0; i < field.selectedOptions.length; i++) {
+                        data[field.name].push(field.selectedOptions[i].value);
+                    }
+
+                } else {
+                    data[field.name] = {
+                        input: field.value,
+                        checked: $(this).prev().prop("checked")
+                    };
+                }
+            }
+        });
+
+        // const textbox = document.getElementById('count');
+        parent.postMessage({ pluginMessage: { type: 'checklist', data } }, '*')
+        // parent.postMessage({ pluginMessage: { type: 'create-rectangles', count } }, '*')
+    });
+
+    document.getElementById('cancel').onclick = () => {
+        parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*')
+    }
+
+    content.forEach((element, index) => {
+        var inputContent = `
+        <div class="flex space-x-2">
+            <input
+                type="checkbox"
+                name="inputCheckbox${index}"
+                class="w-10 h-10"
+            />
+            <input
+                type="text"
+                name="input${index}"
+                placeholder="Please enter a step"
+                class="border border-gray-400 px-4 h-10 w-full"
+                value="${element}"
+            />
+        </div>
+    `;
+        $('.inputs').append(inputContent);
+    });
+
+    // My Script
+    $('#addItem').on('click', function (e) {
+        count++
+        var inputContent = `
+        <div class="flex space-x-2">
+            <input
+                type="checkbox"
+                name="inputCheckbox${count}"
+                class="w-10 h-10"
+            />
+            <input
+                type="text"
+                name="input${count}"
+                placeholder="Please enter a step"
+                class="border border-gray-400 px-4 h-10 w-full"
+            />
+        </div>
+    `;
+        $('.inputs').append(inputContent);
+    });
+
+
+</script>
