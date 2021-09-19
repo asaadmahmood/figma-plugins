@@ -31,18 +31,12 @@
 </div>
 
 <script>
-    let content = [];
-    let count = content.length;
-
-    // let content = ['Create Figma File', 'Create Spec', 'Do Design', 'Post in Spec Reviews'];
-
+    let count = 0;
     window.onmessage = async (event) => {
         const items = event.data.pluginMessage;
-        content = items;
+        count = items.length;
 
-        console.log(items);
-
-        content.forEach((element, index) => {
+        items.forEach((element, index) => {
             console.log(element.state);
             var inputContent = `
         <div class="flex space-x-2">
@@ -88,9 +82,7 @@
             }
         });
 
-        // const textbox = document.getElementById('count');
         parent.postMessage({ pluginMessage: { type: 'checklist', data } }, '*')
-        // parent.postMessage({ pluginMessage: { type: 'create-rectangles', count } }, '*')
     });
 
     document.getElementById('cancel').onclick = () => {

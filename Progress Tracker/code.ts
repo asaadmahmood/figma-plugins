@@ -31,29 +31,57 @@ interface myPaint {
 // });
 
 function turnFrameIntoComponent() {
-    const items = [];
-    const selection: SceneNode = figma.currentPage.findChild(
-        (n) => n.name === "Progress Checklist"
+    const progressPage: PageNode = figma.root.findChild(
+        (n) => n.name === "✅ File Progress"
     );
-    if (!selection) {
-        return;
-    }
-    if (selection.type !== "FRAME") {
-        return;
-    } // <----
 
-    for (const child of selection.children) {
-        if (!child) {
+    let items = [
+        {
+            state: 'false',
+            text: "Create Figma File",
+        },
+        {
+            state: 'false',
+            text: "Create Spec",
+        },
+        {
+            state: 'false',
+            text: "Do Design",
+        },
+        {
+            state: 'false',
+            text: "Post in Spec Reviews",
+        },
+    ];
+
+
+    if (progressPage) {
+        const selection: SceneNode = progressPage.findChild(
+            (n) => n.name === "Progress Checklist"
+        );
+
+        if (!selection) {
             return;
         }
-        if (child.type !== "FRAME") {
+        if (selection.type !== "FRAME") {
             return;
         } // <----
 
-        items.push({
-            state: child.children[0].name,
-            text: child.children[1].name,
-        });
+        items = [];
+
+        for (const child of selection.children) {
+            if (!child) {
+                return;
+            }
+            if (child.type !== "FRAME") {
+                return;
+            } // <----
+
+            items.push({
+                state: child.children[0].name,
+                text: child.children[1].name,
+            });
+        }
     }
 
     figma.ui.postMessage(items);
