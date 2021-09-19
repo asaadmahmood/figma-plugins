@@ -94,6 +94,7 @@ figma.ui.onmessage = async (msg) => {
     const frameHeight = 600;
 
     await figma.loadFontAsync({ family: "Roboto", style: "Regular" });
+    await figma.loadFontAsync({ family: "Roboto", style: "Bold" });
     await figma.loadFontAsync({ family: "compass-icons", style: "Regular" });
 
     if (msg.type === "checklist") {
@@ -128,7 +129,7 @@ figma.ui.onmessage = async (msg) => {
         mainFrame.y = figma.viewport.center.y - frameHeight / 2;
         mainFrame.name = "Progress Checklist";
         mainFrame.layoutMode = "VERTICAL";
-        mainFrame.verticalPadding = 20;
+        mainFrame.verticalPadding = 32;
         mainFrame.horizontalPadding = 40;
         mainFrame.itemSpacing = 20;
 
@@ -138,6 +139,7 @@ figma.ui.onmessage = async (msg) => {
             const checkFrame = figma.createFrame();
 
             checkFrame.layoutMode = "HORIZONTAL";
+            checkFrame.counterAxisAlignItems = "CENTER";
             checkFrame.itemSpacing = 20;
             checkFrame.counterAxisSizingMode = "AUTO";
 
@@ -145,7 +147,7 @@ figma.ui.onmessage = async (msg) => {
             const checklistState = figma.createText();
 
             checklistState.name = val.checked.toString();
-            checklistState.fontSize = 24;
+            checklistState.fontSize = 32;
             checklistState.fontName = {
                 family: "compass-icons",
                 style: "Regular",
@@ -175,6 +177,13 @@ figma.ui.onmessage = async (msg) => {
             mainFrame.appendChild(checkFrame);
             nodes.push(mainFrame);
         });
+
+        const titleText = figma.createText();
+        titleText.fontSize = 40
+        titleText.characters = 'File Progress Tracker'
+        titleText.x = figma.viewport.center.x - frameWidth / 2;
+        titleText.y = figma.viewport.center.y - frameHeight / 1.5;
+        titleText.fontName = { family: "Roboto", style: "Bold" };
 
         figma.currentPage.selection = nodes;
         figma.viewport.scrollAndZoomIntoView(nodes);

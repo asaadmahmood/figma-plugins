@@ -72,6 +72,7 @@ figma.ui.onmessage = (msg) => __awaiter(this, void 0, void 0, function* () {
     const frameWidth = 600;
     const frameHeight = 600;
     yield figma.loadFontAsync({ family: "Roboto", style: "Regular" });
+    yield figma.loadFontAsync({ family: "Roboto", style: "Bold" });
     yield figma.loadFontAsync({ family: "compass-icons", style: "Regular" });
     if (msg.type === "checklist") {
         const pages = figma.root.children;
@@ -96,19 +97,20 @@ figma.ui.onmessage = (msg) => __awaiter(this, void 0, void 0, function* () {
         mainFrame.y = figma.viewport.center.y - frameHeight / 2;
         mainFrame.name = "Progress Checklist";
         mainFrame.layoutMode = "VERTICAL";
-        mainFrame.verticalPadding = 20;
+        mainFrame.verticalPadding = 32;
         mainFrame.horizontalPadding = 40;
         mainFrame.itemSpacing = 20;
         const nodes = [];
         Object.values(msg.data).forEach((val) => __awaiter(this, void 0, void 0, function* () {
             const checkFrame = figma.createFrame();
             checkFrame.layoutMode = "HORIZONTAL";
+            checkFrame.counterAxisAlignItems = "CENTER";
             checkFrame.itemSpacing = 20;
             checkFrame.counterAxisSizingMode = "AUTO";
             // Creating Checklist Checkmark
             const checklistState = figma.createText();
             checklistState.name = val.checked.toString();
-            checklistState.fontSize = 24;
+            checklistState.fontSize = 32;
             checklistState.fontName = {
                 family: "compass-icons",
                 style: "Regular",
@@ -135,6 +137,12 @@ figma.ui.onmessage = (msg) => __awaiter(this, void 0, void 0, function* () {
             mainFrame.appendChild(checkFrame);
             nodes.push(mainFrame);
         }));
+        const titleText = figma.createText();
+        titleText.fontSize = 40;
+        titleText.characters = 'File Progress Tracker';
+        titleText.x = figma.viewport.center.x - frameWidth / 2;
+        titleText.y = figma.viewport.center.y - frameHeight / 1.5;
+        titleText.fontName = { family: "Roboto", style: "Bold" };
         figma.currentPage.selection = nodes;
         figma.viewport.scrollAndZoomIntoView(nodes);
     }
