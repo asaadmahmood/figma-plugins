@@ -31,6 +31,7 @@ interface myPaint {
 // });
 
 function turnFrameIntoComponent() {
+    const items = [];
     const selection: SceneNode = figma.currentPage.findChild(
         (n) => n.name === "Progress Checklist"
     );
@@ -42,8 +43,20 @@ function turnFrameIntoComponent() {
     } // <----
 
     for (const child of selection.children) {
-      console.log(child);
+        if (!child) {
+            return;
+        }
+        if (child.type !== "FRAME") {
+            return;
+        } // <----
+
+        items.push({
+            state: child.children[0].name,
+            text: child.children[1].name,
+        });
     }
+
+    figma.ui.postMessage(items);
 }
 
 turnFrameIntoComponent();
@@ -103,7 +116,7 @@ figma.ui.onmessage = async (msg) => {
             // Creating Checklist Checkmark
             const checklistState = figma.createText();
 
-            checklistState.name = val.input;
+            checklistState.name = val.checked.toString();
             checklistState.fontSize = 24;
             checklistState.fontName = {
                 family: "compass-icons",

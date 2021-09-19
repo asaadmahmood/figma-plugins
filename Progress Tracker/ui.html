@@ -31,9 +31,39 @@
 </div>
 
 <script>
-    let content = ['Create Figma File', 'Create Spec', 'Do Design', 'Post in Spec Reviews'];
+    let content = [];
     let count = content.length;
 
+    // let content = ['Create Figma File', 'Create Spec', 'Do Design', 'Post in Spec Reviews'];
+
+    window.onmessage = async (event) => {
+        const items = event.data.pluginMessage;
+        content = items;
+
+        console.log(items);
+
+        content.forEach((element, index) => {
+            console.log(element.state);
+            var inputContent = `
+        <div class="flex space-x-2">
+            <input
+                type="checkbox"
+                name="inputCheckbox${index}"
+                class="w-10 h-10"
+                ${element.state === 'true' ? 'checked' : ''}
+            />
+            <input
+                type="text"
+                name="input${index}"
+                placeholder="Please enter a step"
+                class="border border-gray-400 px-4 h-10 w-full"
+                value="${element.text}"
+            />
+        </div>
+    `;
+            $('.inputs').append(inputContent);
+        });
+    }
 
     $('#submit').on('click', function (e) {
         e.preventDefault();
@@ -66,26 +96,6 @@
     document.getElementById('cancel').onclick = () => {
         parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*')
     }
-
-    content.forEach((element, index) => {
-        var inputContent = `
-        <div class="flex space-x-2">
-            <input
-                type="checkbox"
-                name="inputCheckbox${index}"
-                class="w-10 h-10"
-            />
-            <input
-                type="text"
-                name="input${index}"
-                placeholder="Please enter a step"
-                class="border border-gray-400 px-4 h-10 w-full"
-                value="${element}"
-            />
-        </div>
-    `;
-        $('.inputs').append(inputContent);
-    });
 
     // My Script
     $('#addItem').on('click', function (e) {
