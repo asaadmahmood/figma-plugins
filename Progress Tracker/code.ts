@@ -8,7 +8,7 @@
 // This shows the HTML page in "ui.html".
 figma.showUI(__html__);
 
-figma.ui.resize(500, 500);
+figma.ui.resize(500, 600);
 
 interface dataObject {
     input: string;
@@ -38,19 +38,31 @@ function turnFrameIntoComponent() {
     let items = [
         {
             state: 'false',
-            text: "Create Figma File",
+            text: "Understanding the problem",
         },
         {
             state: 'false',
-            text: "Create Spec",
+            text: "Feature complexity",
         },
         {
             state: 'false',
-            text: "Do Design",
+            text: "Involving stakeholders",
         },
         {
             state: 'false',
-            text: "Post in Spec Reviews",
+            text: "Competitive analysis",
+        },
+        {
+            state: 'false',
+            text: "Data analysis",
+        },
+        {
+            state: 'false',
+            text: "User feedback",
+        },
+        {
+            state: 'false',
+            text: "User stories",
         },
     ];
 
