@@ -536,27 +536,34 @@ const icons = {
 const pages = figma.root.children;
 const textItems = figma.currentPage.findAll(n => n.type === "TEXT");
 const replaceText = () => __awaiter(this, void 0, void 0, function* () {
-    const textItems = figma.currentPage.findAll(n => n.type === "TEXT");
+    let textItems = figma.currentPage.findAll(n => n.type === "TEXT");
     yield figma.loadFontAsync({ family: "compass-icons", style: "Regular" });
-    textItems.forEach((item) => {
-        if (!item) {
-            return;
-        }
-        if (item.type !== "TEXT") {
-            return;
-        } // <----
-        const oldChar = item.characters;
-        if (oldChar in icons) {
-            item.fontName = { family: "compass-icons", style: "Regular" };
-            const newChar = icons[oldChar].new;
-            item.characters = newChar;
+    const selectedNodes = figma.currentPage.selection;
+    selectedNodes.forEach((selected) => {
+        if ('findAll' in selected) {
+            textItems = selected.findAll(node => node.type === "TEXT");
+            textItems.forEach((item) => {
+                if (!item) {
+                    return;
+                }
+                if (item.type !== "TEXT") {
+                    return;
+                } // <----
+                const oldChar = item.characters;
+                if (oldChar in icons) {
+                    item.fontName = { family: "compass-icons", style: "Regular" };
+                    const newChar = icons[oldChar].new;
+                    item.characters = newChar;
+                }
+            });
         }
     });
 });
-pages.forEach((page) => {
-    figma.currentPage = page;
-    replaceText();
-});
+// pages.forEach((page) => {
+//     figma.currentPage = page;
+//     replaceText();
+// });
+replaceText();
 // for (const page in pages) {
 //     if (!page) {
 //         return;
