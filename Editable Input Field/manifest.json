@@ -1,18 +1,14 @@
 {
-  "name": "Editable Input Field",
-  "id": "1401121297215477109",
-  "api": "1.0.0",
-  "main": "code.js",
-  "capabilities": [],
-  "enableProposedApi": false,
-  "documentAccess": "dynamic-page",
-  "editorType": [
-    "figma"
-  ],
-  "ui": "ui.html",
-  "networkAccess": {
-    "allowedDomains": [
-      "none"
-    ]
-  }
+    "name": "Editable Input Field",
+    "id": "1401121297215477109",
+    "api": "1.0.0",
+    "main": "code.js",
+    "capabilities": [],
+    "enableProposedApi": false,
+    "documentAccess": "dynamic-page",
+    "editorType": ["figma"],
+    "ui": "ui.html",
+    "networkAccess": {
+        "allowedDomains": ["https://uploads-ssl.webflow.com/"]
+    }
 }

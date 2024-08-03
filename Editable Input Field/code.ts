@@ -1,4 +1,5 @@
 figma.showUI(__html__);
+figma.ui.resize(400, 300);
 
 figma.ui.onmessage = async (msg: {
     type: string;
@@ -30,12 +31,34 @@ figma.ui.onmessage = async (msg: {
         const allCollections =
             await figma.variables.getLocalVariableCollectionsAsync();
         let variableCollection = allCollections.find(
-            (collection) => collection.name === 'Text Variables'
+            (collection) => collection.name === 'Ediable Inputs (AM Design)'
         );
 
         if (!variableCollection) {
-            variableCollection =
-                figma.variables.createVariableCollection('Text Variables');
+            variableCollection = figma.variables.createVariableCollection(
+                'Ediable Inputs (AM Design)'
+            );
+        }
+
+        try {
+            const modeId = variableCollection.addMode('New Mode');
+            variableCollection.removeMode(modeId);
+            console.log('Mode added successfully:', modeId);
+        } catch (error: any) {
+            // Use 'any' or 'unknown' for catch clause variable type
+            if (error.message && error.message.includes('Limited to')) {
+                console.error(
+                    'Mode addition failed due to plan limitations:',
+                    error.message
+                );
+                figma.notify(
+                    'Please move this file to a paid plan to use this feature.'
+                );
+            } else {
+                console.error('An unexpected error occurred:', error);
+                figma.notify('An unexpected error occurred. Please try again.');
+            }
+            return;
         }
 
         const variableObjects: {
@@ -46,14 +69,15 @@ figma.ui.onmessage = async (msg: {
         const inputFrames: FrameNode[] = []; // Store inputFrame references
 
         for (let i = 0; i < msg.count; i++) {
-            const variableName = `TextVariable_${i + 1}`;
+            const timestamp = new Date().getTime();
+            const variableName = `TextVariable_${timestamp}_${i + 1}`;
             const textVariable = figma.variables.createVariable(
                 variableName,
                 variableCollection,
                 'STRING'
             );
 
-            const focusFlagName = `TextFieldFocus_${i + 1}`;
+            const focusFlagName = `TextFieldFocus_${timestamp}_${i + 1}`;
             const focusFlag = figma.variables.createVariable(
                 focusFlagName,
                 variableCollection,
@@ -65,7 +89,7 @@ figma.ui.onmessage = async (msg: {
             const modeIds = Object.keys(textVariable.valuesByMode);
             if (modeIds.length > 0) {
                 const defaultModeId = modeIds[0];
-                textVariable.setValueForMode(defaultModeId, '');
+                textVariable.setValueForMode(defaultModeId, 'Textfield Value');
                 focusFlag.setValueForMode(defaultModeId, false);
 
                 const inputFrame = figma.createFrame();
@@ -75,17 +99,60 @@ figma.ui.onmessage = async (msg: {
                 inputFrame.counterAxisSizingMode = 'AUTO';
                 inputFrame.paddingLeft = 12;
                 inputFrame.paddingRight = 12;
+                inputFrame.y = 20 + i * 80;
+                inputFrame.x = 24;
                 inputFrame.paddingTop = 16;
                 inputFrame.paddingBottom = 16;
                 inputFrame.itemSpacing = 0;
+                inputFrame.cornerRadius = 8;
                 inputFrame.resize(250, inputFrame.height);
                 inputFrame.fills = [
-                    { type: 'SOLID', color: { r: 1, g: 1, b: 1 } },
+                    {
+                        type: 'SOLID',
+                        color: { r: 1, g: 1, b: 1 },
+                        opacity: 0.8,
+                    },
                 ];
                 inputFrame.strokes = [
-                    { type: 'SOLID', color: { r: 0, g: 0, b: 0 } },
+                    {
+                        type: 'SOLID',
+                        color: { r: 0, g: 0, b: 0 },
+                        opacity: 0.16,
+                    },
                 ];
                 inputFrame.name = 'Input Field';
+
+                const focusFrame = figma.createFrame();
+
+                // Set the frame to cover the entire area of the inputFrame
+                focusFrame.x = 0;
+                focusFrame.y = 0;
+                focusFrame.strokeWeight = 2;
+                focusFrame.cornerRadius = 8;
+                focusFrame.strokes = [
+                    {
+                        type: 'SOLID',
+                        color: {
+                            r: 13 / 255,
+                            g: 28 / 255,
+                            b: 227 / 255,
+                        },
+                    },
+                ];
+
+                // You can adjust other properties of focusFrame as needed
+                focusFrame.name = 'Focus Frame';
+
+                // Append the inner frame to the inputFrame
+                inputFrame.appendChild(focusFrame);
+
+                focusFrame.layoutPositioning = 'ABSOLUTE';
+                focusFrame.resize(inputFrame.width, inputFrame.height);
+                focusFrame.constraints = {
+                    horizontal: 'STRETCH',
+                    vertical: 'STRETCH',
+                };
+                focusFrame.setBoundVariable('visible', focusFlag);
 
                 const text = figma.createText();
                 text.fontName = { family: 'Roboto', style: 'Regular' };
@@ -143,18 +210,78 @@ figma.ui.onmessage = async (msg: {
 
         const reactions: Reaction[] = [];
 
-        const keyCodes = [
-            ...Array.from({ length: 26 }, (_, i) => i + 65), // A-Z
-            ...Array.from({ length: 10 }, (_, i) => i + 48), // 0-9
-        ];
+        const keyMap: { [key: number]: string } = {
+            65: 'a',
+            66: 'b',
+            67: 'c',
+            68: 'd',
+            69: 'e',
+            70: 'f',
+            71: 'g',
+            72: 'h',
+            73: 'i',
+            74: 'j',
+            75: 'k',
+            76: 'l',
+            77: 'm',
+            78: 'n',
+            79: 'o',
+            80: 'p',
+            81: 'q',
+            82: 'r',
+            83: 's',
+            84: 't',
+            85: 'u',
+            86: 'v',
+            87: 'w',
+            88: 'x',
+            89: 'y',
+            90: 'z',
+            48: '0',
+            49: '1',
+            50: '2',
+            51: '3',
+            52: '4',
+            53: '5',
+            54: '6',
+            55: '7',
+            56: '8',
+            57: '9',
+            188: ',',
+            190: '.',
+            191: '/',
+            186: ';',
+            222: "'",
+            219: '[',
+            221: ']',
+            192: '`',
+            189: '-',
+            187: '=',
+            // Add other key codes as needed
+            // Numpad keys
+            96: '0',
+            97: '1',
+            98: '2',
+            99: '3',
+            100: '4',
+            101: '5',
+            102: '6',
+            103: '7',
+            104: '8',
+            105: '9',
+            106: '*',
+            107: '+',
+            109: '-',
+            110: '.',
+            111: '/',
+        };
 
-        // Loop for keyCodes
-        for (const code of keyCodes) {
+        for (const code in keyMap) {
             const reaction: Reaction = {
                 trigger: {
                     type: 'ON_KEY_DOWN',
                     device: 'KEYBOARD',
-                    keyCodes: [code],
+                    keyCodes: [parseInt(code)],
                 },
                 actions: variableObjects.map(({ textVariable, focusFlag }) => ({
                     type: 'CONDITIONAL',
@@ -203,9 +330,9 @@ figma.ui.onmessage = async (msg: {
                                                 {
                                                     type: 'STRING',
                                                     resolvedType: 'STRING',
-                                                    value: String.fromCharCode(
-                                                        code
-                                                    ),
+                                                    value: keyMap[
+                                                        parseInt(code)
+                                                    ],
                                                 },
                                             ],
                                         },
@@ -216,7 +343,6 @@ figma.ui.onmessage = async (msg: {
                     ],
                 })),
             };
-
             reactions.push(reaction);
         }
 
@@ -231,9 +357,13 @@ figma.ui.onmessage = async (msg: {
             { keyCodes: [16, 56], char: '*' },
             { keyCodes: [16, 57], char: '(' },
             { keyCodes: [16, 48], char: ')' },
+            ...Array.from({ length: 26 }, (_, i) => ({
+                keyCodes: [16, i + 65],
+                char: String.fromCharCode(i + 65),
+            })), // Shift + A-Z for uppercase
         ];
 
-        // Loop for shiftNumberKeyCodes
+        // Loop for shiftNumberKeyCodes (Shift + 1-9 and Shift + A-Z)
         for (const { keyCodes, char } of shiftNumberKeyCodes) {
             const reaction: Reaction = {
                 trigger: {
@@ -318,84 +448,54 @@ figma.ui.onmessage = async (msg: {
 
         reactions.push(removeFocus);
 
-        for (const { textVariable, focusFlag } of variableObjects) {
-            const backspaceReaction: Reaction = {
-                trigger: {
-                    type: 'ON_KEY_DOWN',
-                    device: 'KEYBOARD',
-                    keyCodes: [8],
-                },
-                actions: [
+        const backspaceReaction: Reaction = {
+            trigger: {
+                type: 'ON_KEY_DOWN',
+                device: 'KEYBOARD',
+                keyCodes: [8], // Backspace key code
+            },
+            actions: variableObjects.map(({ textVariable, focusFlag }) => ({
+                type: 'CONDITIONAL',
+                conditionalBlocks: [
                     {
-                        type: 'CONDITIONAL',
-                        conditionalBlocks: [
-                            {
-                                condition: {
-                                    type: 'EXPRESSION',
-                                    resolvedType: 'BOOLEAN',
-                                    value: {
-                                        expressionArguments: [
-                                            {
-                                                type: 'VARIABLE_ALIAS',
-                                                resolvedType: 'BOOLEAN',
-                                                value: {
-                                                    type: 'VARIABLE_ALIAS',
-                                                    id: focusFlag.id,
-                                                },
-                                            },
-                                            {
-                                                type: 'BOOLEAN',
-                                                resolvedType: 'BOOLEAN',
-                                                value: true,
-                                            },
-                                        ],
-                                        expressionFunction: 'EQUALS',
-                                    },
-                                },
-                                actions: [
+                        condition: {
+                            type: 'EXPRESSION',
+                            resolvedType: 'BOOLEAN',
+                            value: {
+                                expressionArguments: [
                                     {
-                                        type: 'SET_VARIABLE',
-                                        variableId: textVariable.id,
-                                        variableValue: {
-                                            resolvedType: 'STRING',
-                                            type: 'STRING',
-                                            value: '',
+                                        type: 'VARIABLE_ALIAS',
+                                        resolvedType: 'BOOLEAN',
+                                        value: {
+                                            type: 'VARIABLE_ALIAS',
+                                            id: focusFlag.id,
                                         },
                                     },
-                                ],
-                            },
-                            {
-                                condition: {
-                                    type: 'EXPRESSION',
-                                    resolvedType: 'BOOLEAN',
-                                    value: {
-                                        expressionArguments: [
-                                            {
-                                                type: 'VARIABLE_ALIAS',
-                                                resolvedType: 'BOOLEAN',
-                                                value: {
-                                                    type: 'VARIABLE_ALIAS',
-                                                    id: focusFlag.id,
-                                                },
-                                            },
-                                            {
-                                                type: 'BOOLEAN',
-                                                resolvedType: 'BOOLEAN',
-                                                value: false,
-                                            },
-                                        ],
-                                        expressionFunction: 'EQUALS',
+                                    {
+                                        type: 'BOOLEAN',
+                                        resolvedType: 'BOOLEAN',
+                                        value: true,
                                     },
+                                ],
+                                expressionFunction: 'EQUALS',
+                            },
+                        },
+                        actions: [
+                            {
+                                type: 'SET_VARIABLE',
+                                variableId: textVariable.id,
+                                variableValue: {
+                                    resolvedType: 'STRING',
+                                    type: 'STRING',
+                                    value: '', // Set to an empty string as a placeholder
                                 },
-                                actions: [], // Leave empty
                             },
                         ],
                     },
                 ],
-            };
-
-            reactions.push(backspaceReaction);
-        }
+            })),
+        };
+        reactions.push(backspaceReaction);
 
         await selectedFrame.setReactionsAsync(reactions);
     }
