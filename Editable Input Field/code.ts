@@ -131,30 +131,91 @@ figma.ui.onmessage = async (msg: {
                     },
                     actions: [
                         {
-                            type: 'SET_VARIABLE',
-                            variableId: textVariable.id,
-                            variableValue: {
-                                resolvedType: 'STRING',
-                                type: 'EXPRESSION',
-                                value: {
-                                    expressionFunction: 'ADDITION',
-                                    expressionArguments: [
-                                        {
-                                            type: 'VARIABLE_ALIAS',
-                                            resolvedType: 'STRING',
-                                            value: {
-                                                type: 'VARIABLE_ALIAS',
-                                                id: textVariable.id,
-                                            },
+                            type: 'CONDITIONAL',
+                            conditionalBlocks: [
+                                {
+                                    condition: {
+                                        type: 'EXPRESSION',
+                                        resolvedType: 'BOOLEAN',
+                                        value: {
+                                            expressionArguments: [
+                                                {
+                                                    type: 'VARIABLE_ALIAS',
+                                                    resolvedType: 'BOOLEAN',
+                                                    value: {
+                                                        type: 'VARIABLE_ALIAS',
+                                                        id: focusFlag.id, // Ensure this is the correct variable ID
+                                                    },
+                                                },
+                                                {
+                                                    type: 'BOOLEAN',
+                                                    resolvedType: 'BOOLEAN',
+                                                    value: true,
+                                                },
+                                            ],
+                                            expressionFunction: 'EQUALS',
                                         },
+                                    },
+                                    actions: [
                                         {
-                                            type: 'STRING',
-                                            resolvedType: 'STRING',
-                                            value: String.fromCharCode(code), // Append the character based on the keycode
+                                            type: 'SET_VARIABLE',
+                                            variableId: textVariable.id,
+                                            variableValue: {
+                                                resolvedType: 'STRING',
+                                                type: 'EXPRESSION',
+                                                value: {
+                                                    expressionFunction:
+                                                        'ADDITION',
+                                                    expressionArguments: [
+                                                        {
+                                                            type: 'VARIABLE_ALIAS',
+                                                            resolvedType:
+                                                                'STRING',
+                                                            value: {
+                                                                type: 'VARIABLE_ALIAS',
+                                                                id: textVariable.id,
+                                                            },
+                                                        },
+                                                        {
+                                                            type: 'STRING',
+                                                            resolvedType:
+                                                                'STRING',
+                                                            value: String.fromCharCode(
+                                                                code
+                                                            ), // Append the character based on the keycode
+                                                        },
+                                                    ],
+                                                },
+                                            },
                                         },
                                     ],
                                 },
-                            },
+                                {
+                                    condition: {
+                                        type: 'EXPRESSION',
+                                        resolvedType: 'BOOLEAN',
+                                        value: {
+                                            expressionArguments: [
+                                                {
+                                                    type: 'VARIABLE_ALIAS',
+                                                    resolvedType: 'BOOLEAN',
+                                                    value: {
+                                                        type: 'VARIABLE_ALIAS',
+                                                        id: focusFlag.id, // Ensure this is the correct variable ID
+                                                    },
+                                                },
+                                                {
+                                                    type: 'BOOLEAN',
+                                                    resolvedType: 'BOOLEAN',
+                                                    value: false,
+                                                },
+                                            ],
+                                            expressionFunction: 'EQUALS',
+                                        },
+                                    },
+                                    actions: [], // Specify actions or leave empty as needed
+                                },
+                            ],
                         },
                     ],
                 };
@@ -185,30 +246,89 @@ figma.ui.onmessage = async (msg: {
                     },
                     actions: [
                         {
-                            type: 'SET_VARIABLE',
-                            variableId: textVariable.id,
-                            variableValue: {
-                                resolvedType: 'STRING',
-                                type: 'EXPRESSION',
-                                value: {
-                                    expressionFunction: 'ADDITION',
-                                    expressionArguments: [
-                                        {
-                                            type: 'VARIABLE_ALIAS',
-                                            resolvedType: 'STRING',
-                                            value: {
-                                                type: 'VARIABLE_ALIAS',
-                                                id: textVariable.id,
-                                            },
+                            type: 'CONDITIONAL',
+                            conditionalBlocks: [
+                                {
+                                    condition: {
+                                        type: 'EXPRESSION',
+                                        resolvedType: 'BOOLEAN',
+                                        value: {
+                                            expressionArguments: [
+                                                {
+                                                    type: 'VARIABLE_ALIAS',
+                                                    resolvedType: 'BOOLEAN',
+                                                    value: {
+                                                        type: 'VARIABLE_ALIAS',
+                                                        id: focusFlag.id, // Ensure this is the correct variable ID
+                                                    },
+                                                },
+                                                {
+                                                    type: 'BOOLEAN',
+                                                    resolvedType: 'BOOLEAN',
+                                                    value: true,
+                                                },
+                                            ],
+                                            expressionFunction: 'EQUALS',
                                         },
+                                    },
+                                    actions: [
                                         {
-                                            type: 'STRING',
-                                            resolvedType: 'STRING',
-                                            value: key.char, // Append the character based on the Shift key
+                                            type: 'SET_VARIABLE',
+                                            variableId: textVariable.id,
+                                            variableValue: {
+                                                resolvedType: 'STRING',
+                                                type: 'EXPRESSION',
+                                                value: {
+                                                    expressionFunction:
+                                                        'ADDITION',
+                                                    expressionArguments: [
+                                                        {
+                                                            type: 'VARIABLE_ALIAS',
+                                                            resolvedType:
+                                                                'STRING',
+                                                            value: {
+                                                                type: 'VARIABLE_ALIAS',
+                                                                id: textVariable.id,
+                                                            },
+                                                        },
+                                                        {
+                                                            type: 'STRING',
+                                                            resolvedType:
+                                                                'STRING',
+                                                            value: key.char, // Append the character based on the Shift key
+                                                        },
+                                                    ],
+                                                },
+                                            },
                                         },
                                     ],
                                 },
-                            },
+                                {
+                                    condition: {
+                                        type: 'EXPRESSION',
+                                        resolvedType: 'BOOLEAN',
+                                        value: {
+                                            expressionArguments: [
+                                                {
+                                                    type: 'VARIABLE_ALIAS',
+                                                    resolvedType: 'BOOLEAN',
+                                                    value: {
+                                                        type: 'VARIABLE_ALIAS',
+                                                        id: focusFlag.id, // Ensure this is the correct variable ID
+                                                    },
+                                                },
+                                                {
+                                                    type: 'BOOLEAN',
+                                                    resolvedType: 'BOOLEAN',
+                                                    value: false,
+                                                },
+                                            ],
+                                            expressionFunction: 'EQUALS',
+                                        },
+                                    },
+                                    actions: [], // Specify actions or leave empty as needed
+                                },
+                            ],
                         },
                     ],
                 };
@@ -238,71 +358,8 @@ figma.ui.onmessage = async (msg: {
 
             reactions.push(backspaceReaction); // Add the backspace reaction to the array
 
-            let testingFlag = figma.variables.createVariable(
-                'whatever',
-                variableCollection,
-                'BOOLEAN'
-            );
-
-            const modeIds1 = Object.keys(textVariable.valuesByMode);
-
-            // Set the value for the default mode (usually the first mode)
-            if (modeIds1.length > 0) {
-                const defaultModeId = modeIds[0]; // Get the first mode ID
-                testingFlag.setValueForMode(defaultModeId, false); // Initialize focus flag to false
-            }
-
-            const focusReaction: Reaction = {
-                trigger: {
-                    type: 'ON_CLICK',
-                },
-                actions: [
-                    {
-                        type: 'CONDITIONAL',
-                        conditionalBlocks: [
-                            {
-                                condition: {
-                                    type: 'EXPRESSION',
-                                    resolvedType: 'BOOLEAN',
-                                    value: {
-                                        expressionArguments: [
-                                            {
-                                                type: 'VARIABLE_ALIAS',
-                                                resolvedType: 'BOOLEAN',
-                                                value: {
-                                                    type: 'VARIABLE_ALIAS',
-                                                    id: testingFlag.id,
-                                                },
-                                            },
-                                            {
-                                                type: 'BOOLEAN',
-                                                resolvedType: 'BOOLEAN',
-                                                value: true,
-                                            },
-                                        ],
-                                        expressionFunction: 'EQUALS',
-                                    },
-                                },
-                                actions: [
-                                    {
-                                        type: 'SET_VARIABLE',
-                                        variableId: focusFlag.id,
-                                        variableValue: {
-                                            type: 'BOOLEAN',
-                                            value: true,
-                                        },
-                                    },
-                                ],
-                            },
-                        ],
-                    },
-                ],
-            };
-
-            reactions.push(focusReaction);
-
             // Set all reactions at once for this variable
-            await inputFrame.setReactionsAsync(reactions);
+            await selectedFrame.setReactionsAsync(reactions);
         }
 
         // Optionally close the plugin when done
