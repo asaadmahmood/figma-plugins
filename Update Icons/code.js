@@ -558,6 +558,7 @@ const replaceText = () => __awaiter(this, void 0, void 0, function* () {
             });
         }
     });
+    figma.closePlugin();
 });
 // pages.forEach((page) => {
 //     figma.currentPage = page;
@@ -576,4 +577,3 @@ replaceText();
 // replaceText();
 // Make sure to close the plugin when you're done. Otherwise the plugin will
 // keep running, which shows the cancel button at the bottom of the screen.
-figma.closePlugin();

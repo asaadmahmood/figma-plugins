@@ -532,9 +532,7 @@ const replaceText = async () => {
     let textItems = figma.currentPage.findAll(n => n.type === "TEXT")
     await figma.loadFontAsync({ family: "compass-icons", style: "Regular" });
 
-
     const selectedNodes = figma.currentPage.selection;
-
 
     selectedNodes.forEach((selected) => {
         if ('findAll' in selected) {
@@ -559,6 +557,8 @@ const replaceText = async () => {
             })
         }
     });
+
+    figma.closePlugin();
 }
 
 // pages.forEach((page) => {
@@ -584,4 +584,3 @@ replaceText();
 
 // Make sure to close the plugin when you're done. Otherwise the plugin will
 // keep running, which shows the cancel button at the bottom of the screen.
-figma.closePlugin();
