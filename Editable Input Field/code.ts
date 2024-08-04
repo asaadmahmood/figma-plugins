@@ -68,6 +68,78 @@ figma.ui.onmessage = async (msg: {
 
         const inputFrames: FrameNode[] = []; // Store inputFrame references
 
+        // Create the caret frame for the "on" state
+        const caretFrameOn = figma.createFrame();
+        caretFrameOn.resize(1, 19);
+        caretFrameOn.fills = [
+            {
+                type: 'SOLID',
+                color: { r: 0, g: 0, b: 0 },
+            },
+        ];
+
+        // Create the caret frame for the "off" state
+        const caretFrameOff = figma.createFrame();
+        caretFrameOff.resize(1, 18);
+        caretFrameOff.fills = [
+            {
+                type: 'SOLID',
+                color: { r: 0, g: 0, b: 0 },
+                opacity: 0,
+            },
+        ];
+
+        // Create components from the frames
+        const caretFrameOnComponent =
+            figma.createComponentFromNode(caretFrameOn);
+        const caretFrameOffComponent =
+            figma.createComponentFromNode(caretFrameOff);
+
+        // Combine the components into variants
+        const caretComponent = figma.combineAsVariants(
+            [caretFrameOnComponent, caretFrameOffComponent],
+            figma.currentPage
+        );
+
+        caretComponent.name = 'Caret Indicator';
+
+        // Rename the variants to "on" and "off"
+        caretFrameOnComponent.name = 'State=on';
+        caretFrameOffComponent.name = 'State=off';
+
+        // Add interaction to change variant after a delay of 100ms
+        const changeToOnAction: Action = {
+            type: 'NODE',
+            destinationId: caretFrameOnComponent.id,
+            navigation: 'CHANGE_TO',
+            transition: null,
+        };
+
+        const changeToOffAction: Action = {
+            type: 'NODE',
+            destinationId: caretFrameOffComponent.id,
+            navigation: 'CHANGE_TO',
+            transition: null,
+        };
+
+        const afterTimeoutTrigger: Trigger = {
+            type: 'AFTER_TIMEOUT',
+            timeout: 0.5,
+        };
+
+        const reaction: Reaction = {
+            trigger: afterTimeoutTrigger,
+            actions: [changeToOnAction],
+        };
+
+        const reactionBack: Reaction = {
+            trigger: afterTimeoutTrigger,
+            actions: [changeToOffAction],
+        };
+
+        await caretFrameOffComponent.setReactionsAsync([reaction]);
+        await caretFrameOnComponent.setReactionsAsync([reactionBack]);
+
         for (let i = 0; i < msg.count; i++) {
             const timestamp = new Date().getTime();
             const variableName = `TextVariable_${timestamp}_${i + 1}`;
@@ -87,6 +159,7 @@ figma.ui.onmessage = async (msg: {
             variableObjects.push({ textVariable, focusFlag });
 
             const modeIds = Object.keys(textVariable.valuesByMode);
+
             if (modeIds.length > 0) {
                 const defaultModeId = modeIds[0];
                 textVariable.setValueForMode(defaultModeId, 'Textfield Value');
@@ -158,15 +231,12 @@ figma.ui.onmessage = async (msg: {
                 text.fontName = { family: 'Roboto', style: 'Regular' };
                 text.fontSize = 16;
                 text.setBoundVariable('characters', textVariable);
-                text.layoutAlign = 'STRETCH';
-                text.layoutGrow = 1;
-                text.resizeWithoutConstraints(
-                    250 - inputFrame.paddingLeft - inputFrame.paddingRight,
-                    text.height
-                );
+                const caretInstance = caretFrameOffComponent.createInstance();
                 inputFrame.appendChild(text);
+                inputFrame.appendChild(caretInstance);
                 selectedFrame.appendChild(inputFrame);
                 inputFrames.push(inputFrame);
+                caretInstance.setBoundVariable('visible', focusFlag);
             }
         }
 
