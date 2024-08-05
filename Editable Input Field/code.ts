@@ -1,52 +1,6 @@
 figma.showUI(__html__);
 figma.ui.resize(400, 300);
 
-interface FocusFlagPair {
-    focusFlag: Variable;
-    textVariable: Variable;
-}
-
-async function getAllFocusFlags(
-    collection: VariableCollection
-): Promise<FocusFlagPair[]> {
-    const focusFlagPairs: FocusFlagPair[] = [];
-    const allVariables: Variable[] = [];
-
-    // Fetch all variables once
-    for (const variableId of collection.variableIds) {
-        const variableObject = await figma.variables.getVariableByIdAsync(
-            variableId
-        );
-        if (variableObject) {
-            allVariables.push(variableObject);
-        }
-    }
-
-    // Find and pair focus flags and text variables
-    for (const variable of allVariables) {
-        if (variable.name.includes('TextFieldFocus')) {
-            console.log(variable.name);
-            const identifier = variable.name.split('_').slice(1).join('_');
-            console.log('🚀 ~ identifier:', identifier);
-
-            const textVariableName = `TextVariable_${identifier}`;
-
-            const textVariable = allVariables.find(
-                (v) => v.name === textVariableName
-            );
-
-            if (textVariable) {
-                focusFlagPairs.push({ focusFlag: variable, textVariable });
-            }
-        }
-    }
-
-    console.log('Pair');
-    console.log(focusFlagPairs);
-
-    return focusFlagPairs;
-}
-
 figma.ui.onmessage = async (msg: {
     type: string;
     count?: number;
@@ -287,11 +241,8 @@ figma.ui.onmessage = async (msg: {
         }
 
         // Add reactions after all variableObjects are created
-        const variablePair = await getAllFocusFlags(variableCollection);
-
         for (let i = 0; i < inputFrames.length; i++) {
             const { focusFlag } = variableObjects[i];
-
             const inputFrame = inputFrames[i];
 
             const setFocusActions = [
@@ -306,11 +257,11 @@ figma.ui.onmessage = async (msg: {
                     },
                 },
                 // Set all other focusFlags to false
-                ...variablePair
-                    .filter((flag) => flag.focusFlag.id !== focusFlag.id)
-                    .map((flag) => ({
+                ...variableObjects
+                    .filter((vo) => vo.focusFlag.id !== focusFlag.id)
+                    .map((vo) => ({
                         type: 'SET_VARIABLE' as const, // Ensuring exact literal type match
-                        variableId: flag.focusFlag.id,
+                        variableId: vo.focusFlag.id,
                         variableValue: {
                             resolvedType: 'BOOLEAN',
                             type: 'BOOLEAN',
@@ -402,7 +353,7 @@ figma.ui.onmessage = async (msg: {
                     device: 'KEYBOARD',
                     keyCodes: [parseInt(code)],
                 },
-                actions: variablePair.map(({ focusFlag, textVariable }) => ({
+                actions: variableObjects.map(({ textVariable, focusFlag }) => ({
                     type: 'CONDITIONAL',
                     conditionalBlocks: [
                         {
@@ -490,7 +441,7 @@ figma.ui.onmessage = async (msg: {
                     device: 'KEYBOARD',
                     keyCodes: keyCodes,
                 },
-                actions: variablePair.map(({ focusFlag, textVariable }) => ({
+                actions: variableObjects.map(({ textVariable, focusFlag }) => ({
                     type: 'CONDITIONAL',
                     conditionalBlocks: [
                         {
@@ -554,7 +505,7 @@ figma.ui.onmessage = async (msg: {
 
         const removeFocus: Reaction = {
             trigger: { type: 'ON_CLICK' },
-            actions: variablePair.map((vo) => ({
+            actions: variableObjects.map((vo) => ({
                 type: 'SET_VARIABLE',
                 variableId: vo.focusFlag.id,
                 variableValue: {
@@ -573,7 +524,7 @@ figma.ui.onmessage = async (msg: {
                 device: 'KEYBOARD',
                 keyCodes: [8], // Backspace key code
             },
-            actions: variablePair.map(({ textVariable, focusFlag }) => ({
+            actions: variableObjects.map(({ textVariable, focusFlag }) => ({
                 type: 'CONDITIONAL',
                 conditionalBlocks: [
                     {
