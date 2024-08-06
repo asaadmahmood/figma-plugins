@@ -47,26 +47,6 @@ figma.ui.onmessage = async (msg: {
             );
         }
 
-        try {
-            const modeId = variableCollection.addMode('New Mode');
-            variableCollection.removeMode(modeId);
-        } catch (error: any) {
-            // Use 'any' or 'unknown' for catch clause variable type
-            if (error.message && error.message.includes('Limited to')) {
-                console.error(
-                    'Mode addition failed due to plan limitations:',
-                    error.message
-                );
-                figma.notify(
-                    'Please move this file to a paid plan to use this feature.'
-                );
-            } else {
-                console.error('An unexpected error occurred:', error);
-                figma.notify('An unexpected error occurred. Please try again.');
-            }
-            return;
-        }
-
         const variableObjects: {
             textVariable: Variable;
             focusFlag: Variable;
@@ -74,8 +54,13 @@ figma.ui.onmessage = async (msg: {
 
         // Create the caret frame for the "on" state
         const caretFrameOn = figma.createFrame();
-        caretFrameOn.resize(1, 19);
-        caretFrameOn.fills = [
+        const caretFrameOnInner = figma.createFrame();
+        const caretFrameInnerHegiht = 20;
+        caretFrameOn.resize(1, 10);
+        caretFrameOn.clipsContent = false;
+        caretFrameOnInner.resize(1, caretFrameInnerHegiht);
+        caretFrameOnInner.y = -5;
+        caretFrameOnInner.fills = [
             {
                 type: 'SOLID',
                 color: { r: 0, g: 0, b: 0 },
@@ -84,8 +69,12 @@ figma.ui.onmessage = async (msg: {
 
         // Create the caret frame for the "off" state
         const caretFrameOff = figma.createFrame();
-        caretFrameOff.resize(1, 18);
-        caretFrameOff.fills = [
+        const caretFrameOffInner = figma.createFrame();
+        caretFrameOff.resize(1, 10);
+        caretFrameOff.clipsContent = false;
+        caretFrameOffInner.resize(1, caretFrameInnerHegiht);
+        caretFrameOffInner.y = -caretFrameInnerHegiht / 4;
+        caretFrameOffInner.fills = [
             {
                 type: 'SOLID',
                 color: { r: 0, g: 0, b: 0 },
@@ -94,6 +83,9 @@ figma.ui.onmessage = async (msg: {
         ];
 
         // Create components from the frames
+        caretFrameOff.appendChild(caretFrameOffInner);
+        caretFrameOn.appendChild(caretFrameOnInner);
+
         const caretFrameOnComponent =
             figma.createComponentFromNode(caretFrameOn);
         const caretFrameOffComponent =
@@ -144,18 +136,43 @@ figma.ui.onmessage = async (msg: {
         await caretFrameOffComponent.setReactionsAsync([reaction]);
         await caretFrameOnComponent.setReactionsAsync([reactionBack]);
 
+        // Add reactions after all variableObjects are created
+        const lastVariableID =
+            variableCollection.variableIds[
+                variableCollection.variableIds.length - 1
+            ];
+        const lastVariable = await figma.variables.getVariableByIdAsync(
+            lastVariableID
+        );
+
+        // Extract the number using a regular expression
+        const match = lastVariable?.name.match(/_(\d+)$/);
+        let lastNumber = 0;
+
+        if (match) {
+            lastNumber = parseInt(match[1], 10) + 1;
+        }
+
         for (let i = 0; i < msg.count; i++) {
-            const timestamp = new Date().getTime();
-            const variableName = `TextVariable_${timestamp}_${i + 1}`;
+            const newNumber = lastNumber + i;
+            const variableName = `TextVariable_${newNumber}`;
+            const focusFlagName = `TextFieldFocus_${newNumber}`;
+            const placeholderFlagName = `TextFieldPlaceholder_${newNumber}`;
+
             const textVariable = figma.variables.createVariable(
                 variableName,
                 variableCollection,
                 'STRING'
             );
 
-            const focusFlagName = `TextFieldFocus_${timestamp}_${i + 1}`;
             const focusFlag = figma.variables.createVariable(
                 focusFlagName,
+                variableCollection,
+                'BOOLEAN'
+            );
+
+            const placeholderFlag = figma.variables.createVariable(
+                placeholderFlagName,
                 variableCollection,
                 'BOOLEAN'
             );
@@ -166,8 +183,9 @@ figma.ui.onmessage = async (msg: {
 
             if (modeIds.length > 0) {
                 const defaultModeId = modeIds[0];
-                textVariable.setValueForMode(defaultModeId, 'Textfield Value');
+                textVariable.setValueForMode(defaultModeId, '');
                 focusFlag.setValueForMode(defaultModeId, false);
+                placeholderFlag.setValueForMode(defaultModeId, true);
 
                 const inputFrame = figma.createFrame();
                 inputFrame.layoutMode = 'HORIZONTAL';
@@ -178,8 +196,8 @@ figma.ui.onmessage = async (msg: {
                 inputFrame.paddingRight = 12;
                 inputFrame.y = 20 + i * 80;
                 inputFrame.x = 24;
-                inputFrame.paddingTop = 16;
-                inputFrame.paddingBottom = 16;
+                inputFrame.paddingTop = 12;
+                inputFrame.paddingBottom = 12;
                 inputFrame.itemSpacing = 0;
                 inputFrame.cornerRadius = 8;
                 inputFrame.resize(250, inputFrame.height);
@@ -232,54 +250,85 @@ figma.ui.onmessage = async (msg: {
                 focusFrame.setBoundVariable('visible', focusFlag);
 
                 const text = figma.createText();
+                const placeholder = figma.createText();
+                // Creating text variable
                 text.fontName = { family: 'Roboto', style: 'Regular' };
-                text.fontSize = 16;
+                text.fontSize = 14;
                 text.setBoundVariable('characters', textVariable);
+
+                // Creating text placeholder
+                placeholder.fontName = { family: 'Roboto', style: 'Regular' };
+                placeholder.fontSize = 14;
+                placeholder.opacity = 0.6;
+                placeholder.name = 'Placeholder';
+                placeholder.characters = 'Enter your value';
+                placeholder.setBoundVariable('visible', placeholderFlag);
+
                 const caretInstance = caretFrameOffComponent.createInstance();
                 inputFrame.appendChild(text);
+                inputFrame.appendChild(placeholder);
                 inputFrame.appendChild(caretInstance);
                 selectedFrame.appendChild(inputFrame);
                 caretInstance.setBoundVariable('visible', focusFlag);
             }
         }
 
-        // Add reactions after all variableObjects are created
         const variablePair = await getAllFocusFlags(variableCollection);
+
+        if (variablePair.length > 100) {
+            figma.notify(
+                "You've created too many inputs using the plugin, and you have about 50 input field variables created, please remove the variable collection - Editable Inputs (AM Design) and start again to avoid performance issues with the plugin"
+            );
+        }
 
         let inputFrames: FrameNode[] = []; // Store inputFrame references
 
         inputFrames = findInputFrames(selectedFrame, inputFrames);
-
-        console.log('🚀 ~ inputFrames:', inputFrames);
-        console.log('🚀 ~ variablePair:', variablePair);
 
         // On Blur Event
         for (let i = 0; i < inputFrames.length; i++) {
             const inputFrame = inputFrames[i];
 
             const textFrame = inputFrame.children.find(
-                (child) => child.name === 'Textfield Value'
+                (child) => child.name === 'Text'
             );
 
             const textFieldVarID = textFrame?.boundVariables?.characters?.id;
 
             if (textFieldVarID) {
-                const focusFlagID = findFocusFlag(variablePair, textFieldVarID);
+                const focusFlagPair = findFocusFlag(
+                    variablePair,
+                    textFieldVarID
+                );
+
+                console.log(focusFlagPair);
 
                 const setFocusActions = [
                     // Set the current focusFlag to true
                     {
                         type: 'SET_VARIABLE' as const, // Ensuring exact literal type match
-                        variableId: focusFlagID,
+                        variableId: focusFlagPair?.focusFlagID,
                         variableValue: {
                             resolvedType: 'BOOLEAN',
                             type: 'BOOLEAN',
                             value: true,
                         },
                     },
+                    {
+                        type: 'SET_VARIABLE' as const, // Ensuring exact literal type match
+                        variableId: focusFlagPair?.placeholderVariableID,
+                        variableValue: {
+                            resolvedType: 'BOOLEAN',
+                            type: 'BOOLEAN',
+                            value: false,
+                        },
+                    },
                     // Set all other focusFlags to false
                     ...variablePair
-                        .filter((flag) => flag.focusFlag.id !== focusFlagID)
+                        .filter(
+                            (flag) =>
+                                flag.focusFlag.id !== focusFlagPair?.focusFlagID
+                        )
                         .map((flag) => ({
                             type: 'SET_VARIABLE' as const, // Ensuring exact literal type match
                             variableId: flag.focusFlag.id,
@@ -303,6 +352,7 @@ figma.ui.onmessage = async (msg: {
         const reactions: Reaction[] = [];
 
         const keyMap: { [key: number]: string } = {
+            32: ' ',
             65: 'a',
             66: 'b',
             67: 'c',

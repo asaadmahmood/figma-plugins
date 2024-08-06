@@ -4,6 +4,7 @@ export const fieldName = 'AMInput (Dont rename)';
 interface FocusFlagPair {
     focusFlag: Variable;
     textVariable: Variable;
+    placeholderVariable: Variable;
 }
 
 export function findTopMostFrame(node: SceneNode): FrameNode | null {
@@ -36,8 +37,6 @@ export function findInputFrames(
         }
     }
 
-    console.log(inputFrames);
-
     return inputFrames;
 }
 
@@ -47,7 +46,10 @@ export function findFocusFlag(
 ) {
     for (const item of variableFlag) {
         if (item.textVariable.id === textVariableId) {
-            return item.focusFlag.id;
+            return {
+                focusFlagID: item.focusFlag.id,
+                placeholderVariableID: item.placeholderVariable.id,
+            };
         }
     }
     return null; // Return null if the textVariableId is not found
@@ -81,23 +83,44 @@ export async function getAllFocusFlags(
         }
     }
 
-    // Find and pair focus flags and text variables
+    // Categorize variables
+    const textVariables: { [key: string]: Variable } = {};
+    const focusVariables: { [key: string]: Variable } = {};
+    const placeholderVariables: { [key: string]: Variable } = {};
+
     for (const variable of allVariables) {
-        if (variable.name.includes('TextFieldFocus')) {
-            const identifier = variable.name.split('_').slice(1).join('_');
-            const textVariableName = `TextVariable_${identifier}`;
+        if (variable.name.startsWith('TextVariable_')) {
+            const identifier = variable.name.split('_')[1];
+            textVariables[identifier] = variable;
+        } else if (variable.name.startsWith('TextFieldFocus_')) {
+            const identifier = variable.name.split('_')[1];
+            focusVariables[identifier] = variable;
+        } else if (variable.name.startsWith('TextFieldPlaceholder_')) {
+            const identifier = variable.name.split('_')[1];
+            placeholderVariables[identifier] = variable;
+        }
+    }
 
-            const textVariable = allVariables.find(
-                (v) => v.name === textVariableName
+    // Pair the variables together
+    for (const identifier in focusVariables) {
+        const focusFlag = focusVariables[identifier];
+        const textVariable = textVariables[identifier];
+        const placeholderVariable = placeholderVariables[identifier];
+
+        if (focusFlag && textVariable && placeholderVariable) {
+            focusFlagPairs.push({
+                focusFlag,
+                textVariable,
+                placeholderVariable,
+            });
+        } else {
+            console.warn(
+                `Missing variables for identifier ${identifier}: ` +
+                    `TextVariable: ${textVariable ? 'found' : 'missing'}, ` +
+                    `TextFieldPlaceholder: ${
+                        placeholderVariable ? 'found' : 'missing'
+                    }`
             );
-
-            if (textVariable) {
-                focusFlagPairs.push({ focusFlag: variable, textVariable });
-            } else {
-                console.warn(
-                    `No corresponding TextVariable found for ${variable.name}`
-                );
-            }
         }
     }
 
