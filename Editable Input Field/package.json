@@ -1,45 +1,48 @@
 {
-  "name": "editable-input-field",
-  "version": "1.0.0",
-  "description": "Your Figma Plugin",
-  "main": "code.js",
-  "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "lint": "eslint --ext .ts,.tsx --ignore-pattern node_modules .",
-    "lint:fix": "eslint --ext .ts,.tsx --ignore-pattern node_modules --fix .",
-    "watch": "npm run build -- --watch"
-  },
-  "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "@figma/eslint-plugin-figma-plugins": "^0.15.0",
-    "@figma/plugin-typings": "^1.97.0",
-    "@typescript-eslint/eslint-plugin": "^6.12.0",
-    "@typescript-eslint/parser": "^6.12.0",
-    "eslint": "^8.54.0",
-    "typescript": "^5.3.2"
-  },
-  "eslintConfig": {
-    "extends": [
-      "eslint:recommended",
-      "plugin:@typescript-eslint/recommended",
-      "plugin:@figma/figma-plugins/recommended"
-    ],
-    "parser": "@typescript-eslint/parser",
-    "parserOptions": {
-      "project": "./tsconfig.json"
+    "name": "editable-input-field",
+    "version": "1.0.0",
+    "description": "Your Figma Plugin",
+    "main": "code.js",
+    "scripts": {
+        "lint": "eslint --ext .ts,.tsx --ignore-pattern node_modules .",
+        "lint:fix": "eslint --ext .ts,.tsx --ignore-pattern node_modules --fix .",
+        "build": "webpack",
+        "watch": "webpack --watch"
     },
-    "root": true,
-    "rules": {
-      "@typescript-eslint/no-unused-vars": [
-        "error",
-        {
-          "argsIgnorePattern": "^_",
-          "varsIgnorePattern": "^_",
-          "caughtErrorsIgnorePattern": "^_"
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "@figma/eslint-plugin-figma-plugins": "^0.15.0",
+        "@figma/plugin-typings": "^1.97.0",
+        "@typescript-eslint/eslint-plugin": "^6.12.0",
+        "@typescript-eslint/parser": "^6.12.0",
+        "eslint": "^8.54.0",
+        "ts-loader": "^9.5.1",
+        "typescript": "^5.5.4",
+        "webpack": "^5.93.0",
+        "webpack-cli": "^5.1.4"
+    },
+    "eslintConfig": {
+        "extends": [
+            "eslint:recommended",
+            "plugin:@typescript-eslint/recommended",
+            "plugin:@figma/figma-plugins/recommended"
+        ],
+        "parser": "@typescript-eslint/parser",
+        "parserOptions": {
+            "project": "./tsconfig.json"
+        },
+        "root": true,
+        "rules": {
+            "@typescript-eslint/no-unused-vars": [
+                "error",
+                {
+                    "argsIgnorePattern": "^_",
+                    "varsIgnorePattern": "^_",
+                    "caughtErrorsIgnorePattern": "^_"
+                }
+            ]
         }
-      ]
-    }
-  },
-  "keywords": []
+    },
+    "keywords": []
 }

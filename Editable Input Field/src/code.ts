@@ -1,51 +1,13 @@
+import {
+    fieldName,
+    findFocusFlag,
+    findInputFrames,
+    findTopMostFrame,
+    getAllFocusFlags,
+} from './utils';
+
 figma.showUI(__html__);
 figma.ui.resize(400, 300);
-
-interface FocusFlagPair {
-    focusFlag: Variable;
-    textVariable: Variable;
-}
-
-async function getAllFocusFlags(
-    collection: VariableCollection
-): Promise<FocusFlagPair[]> {
-    const focusFlagPairs: FocusFlagPair[] = [];
-    const allVariables: Variable[] = [];
-
-    // Fetch all variables once
-    for (const variableId of collection.variableIds) {
-        const variableObject = await figma.variables.getVariableByIdAsync(
-            variableId
-        );
-        if (variableObject) {
-            allVariables.push(variableObject);
-        }
-    }
-
-    // Find and pair focus flags and text variables
-    for (const variable of allVariables) {
-        if (variable.name.includes('TextFieldFocus')) {
-            console.log(variable.name);
-            const identifier = variable.name.split('_').slice(1).join('_');
-            console.log('🚀 ~ identifier:', identifier);
-
-            const textVariableName = `TextVariable_${identifier}`;
-
-            const textVariable = allVariables.find(
-                (v) => v.name === textVariableName
-            );
-
-            if (textVariable) {
-                focusFlagPairs.push({ focusFlag: variable, textVariable });
-            }
-        }
-    }
-
-    console.log('Pair');
-    console.log(focusFlagPairs);
-
-    return focusFlagPairs;
-}
 
 figma.ui.onmessage = async (msg: {
     type: string;
@@ -61,13 +23,12 @@ figma.ui.onmessage = async (msg: {
             return;
         }
 
-        const selectedFrame = selection[0] as FrameNode;
+        const selectedNode = selection[0]; // The initially selected node
+        const selectedFrame = findTopMostFrame(selectedNode) as FrameNode;
 
         try {
             await figma.loadFontAsync({ family: 'Roboto', style: 'Regular' });
-            console.log('Font loaded successfully');
         } catch (error) {
-            console.error('Font loading failed:', error);
             figma.notify(
                 'Font loading failed. Please ensure the font is available.'
             );
@@ -89,7 +50,6 @@ figma.ui.onmessage = async (msg: {
         try {
             const modeId = variableCollection.addMode('New Mode');
             variableCollection.removeMode(modeId);
-            console.log('Mode added successfully:', modeId);
         } catch (error: any) {
             // Use 'any' or 'unknown' for catch clause variable type
             if (error.message && error.message.includes('Limited to')) {
@@ -111,8 +71,6 @@ figma.ui.onmessage = async (msg: {
             textVariable: Variable;
             focusFlag: Variable;
         }[] = [];
-
-        const inputFrames: FrameNode[] = []; // Store inputFrame references
 
         // Create the caret frame for the "on" state
         const caretFrameOn = figma.createFrame();
@@ -239,7 +197,7 @@ figma.ui.onmessage = async (msg: {
                         opacity: 0.16,
                     },
                 ];
-                inputFrame.name = 'Input Field';
+                inputFrame.name = fieldName;
 
                 const focusFrame = figma.createFrame();
 
@@ -281,7 +239,6 @@ figma.ui.onmessage = async (msg: {
                 inputFrame.appendChild(text);
                 inputFrame.appendChild(caretInstance);
                 selectedFrame.appendChild(inputFrame);
-                inputFrames.push(inputFrame);
                 caretInstance.setBoundVariable('visible', focusFlag);
             }
         }
@@ -289,42 +246,58 @@ figma.ui.onmessage = async (msg: {
         // Add reactions after all variableObjects are created
         const variablePair = await getAllFocusFlags(variableCollection);
 
-        for (let i = 0; i < inputFrames.length; i++) {
-            const { focusFlag } = variableObjects[i];
+        let inputFrames: FrameNode[] = []; // Store inputFrame references
 
+        inputFrames = findInputFrames(selectedFrame, inputFrames);
+
+        console.log('🚀 ~ inputFrames:', inputFrames);
+        console.log('🚀 ~ variablePair:', variablePair);
+
+        // On Blur Event
+        for (let i = 0; i < inputFrames.length; i++) {
             const inputFrame = inputFrames[i];
 
-            const setFocusActions = [
-                // Set the current focusFlag to true
-                {
-                    type: 'SET_VARIABLE' as const, // Ensuring exact literal type match
-                    variableId: focusFlag.id,
-                    variableValue: {
-                        resolvedType: 'BOOLEAN',
-                        type: 'BOOLEAN',
-                        value: true,
-                    },
-                },
-                // Set all other focusFlags to false
-                ...variablePair
-                    .filter((flag) => flag.focusFlag.id !== focusFlag.id)
-                    .map((flag) => ({
+            const textFrame = inputFrame.children.find(
+                (child) => child.name === 'Textfield Value'
+            );
+
+            const textFieldVarID = textFrame?.boundVariables?.characters?.id;
+
+            if (textFieldVarID) {
+                const focusFlagID = findFocusFlag(variablePair, textFieldVarID);
+
+                const setFocusActions = [
+                    // Set the current focusFlag to true
+                    {
                         type: 'SET_VARIABLE' as const, // Ensuring exact literal type match
-                        variableId: flag.focusFlag.id,
+                        variableId: focusFlagID,
                         variableValue: {
                             resolvedType: 'BOOLEAN',
                             type: 'BOOLEAN',
-                            value: false,
+                            value: true,
                         },
-                    })),
-            ];
+                    },
+                    // Set all other focusFlags to false
+                    ...variablePair
+                        .filter((flag) => flag.focusFlag.id !== focusFlagID)
+                        .map((flag) => ({
+                            type: 'SET_VARIABLE' as const, // Ensuring exact literal type match
+                            variableId: flag.focusFlag.id,
+                            variableValue: {
+                                resolvedType: 'BOOLEAN',
+                                type: 'BOOLEAN',
+                                value: false,
+                            },
+                        })),
+                ];
 
-            const focusReaction: Reaction = {
-                trigger: { type: 'ON_CLICK' },
-                actions: setFocusActions as [Action],
-            };
+                const focusReaction: Reaction = {
+                    trigger: { type: 'ON_CLICK' },
+                    actions: setFocusActions as [Action],
+                };
 
-            await inputFrame.setReactionsAsync([focusReaction]);
+                await inputFrame.setReactionsAsync([focusReaction]);
+            }
         }
 
         const reactions: Reaction[] = [];
